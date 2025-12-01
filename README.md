@@ -83,7 +83,3 @@ Software Specification
 • Front End: Python Tkinter
 
 
-contact via
-
-: linkedin.com/in/josin-jose-721324214   
-: josinkottayil123@gmail.com
