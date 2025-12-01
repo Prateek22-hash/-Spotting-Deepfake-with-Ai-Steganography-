@@ -1,0 +1,25 @@
+The Wav2Vec2 Model in this project is used for detecting deepfake audio.
+
+Functionality:
+- The model is loaded from 'models/wav2vec_model' using the Hugging Face transformers library.
+- Audio files are preprocessed by loading and resampling to 16kHz, then processed using the Wav2Vec2Processor to convert raw audio into input tensors suitable for the model.
+- The preprocessed audio input is passed to the Wav2Vec2ForSequenceClassification model to obtain logits.
+- The logits are used to predict the class: 1 indicates "Deepfake Detected", and 0 indicates "Authentic Audio".
+- The prediction result is returned as a string indicating whether the audio is authentic or a deepfake.
+
+Relevant Code Snippet:
+
+def preprocess_audio(audio_path):
+    audio, rate = librosa.load(audio_path, sr=16000)  # Load audio file and resample to 16kHz
+    input_values = wav2vec_processor(audio, return_tensors='pt', padding=True, sampling_rate=16000).input_values  # Preprocess audio for model
+    return input_values
+
+def detect_audio_deepfake(audio_path):
+    input_values = preprocess_audio(audio_path)  # Preprocess audio
+    with torch.no_grad():  # Disable gradient calculations
+        logits = wav2vec_model(input_values).logits  # Get logits from model
+    prediction = torch.argmax(logits, dim=-1).item()  # Get class prediction (0 or 1)
+    result = "Deepfake Detected" if prediction == 1 else "Authentic Audio"  # Interpret prediction
+    return result
+
+This function takes an audio file path, processes the audio, predicts deepfake authenticity, and returns the result.

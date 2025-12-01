@@ -1,0 +1,36 @@
+The Xception Model in this project is used for detecting deepfake images.
+
+Functionality:
+- The model is loaded from 'models/xception_model.h5' using Keras.
+- Images are preprocessed by resizing to 299x299 pixels, converting color space from BGR to RGB, normalizing pixel values, and expanding dimensions to fit the model input.
+- The preprocessed image is passed to the Xception model to predict whether the image is a deepfake or authentic.
+- The prediction output is interpreted: class 0 indicates "Deepfake Detected", and other classes indicate "Authentic Media".
+- Additionally, a Grad-CAM heatmap is generated to visualize the areas of the image that influenced the model's decision. This heatmap is overlaid on the original image and saved as a separate file.
+
+Relevant Code Snippet:
+
+def preprocess_image(image_path):
+    img = cv2.imread(image_path)  # Read the image using OpenCV
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # Convert BGR to RGB
+    img = cv2.resize(img, (299, 299))  # Resize image to XceptionNet input size
+    img = np.expand_dims(img, axis=0) / 255.0  # Normalize and expand dimensions
+    return img
+
+def detect_image_deepfake(image_path):
+    img_data = preprocess_image(image_path)  # Preprocess image
+    prediction = xception_model.predict(img_data)  # Make prediction using Xception model
+    predicted_class = prediction[0].argmax()
+    if predicted_class == 0:
+        result = "Deepfake Detected"
+    else:
+        result = "Authentic Media"
+
+    # Generate Grad-CAM heatmap and save overlay image
+    last_conv_layer_name = 'block14_sepconv2_act'  # Xception last conv layer name
+    heatmap = make_gradcam_heatmap(img_data, xception_model, last_conv_layer_name, pred_index=predicted_class)
+    cam_path = image_path.rsplit('.', 1)[0] + '_cam.jpg'
+    save_and_display_gradcam(image_path, heatmap, cam_path=cam_path, alpha=0.4, apply_black_mask=(result == "Deepfake Detected"))
+
+    return result, str(prediction), cam_path
+
+This function takes an image file path, processes the image, predicts deepfake authenticity, and generates a heatmap visualization to aid interpretation.

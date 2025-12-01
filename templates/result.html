@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Deepfake Detection Result</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Orbitron', sans-serif;
+            overflow-y: auto;
+            background-color: transparent;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none;  /* IE and Edge */
+            scroll-behavior: smooth;
+            scroll-snap-type: y mandatory;
+            scroll-padding: 10px;
+            scroll-snap-stop: always;
+        }
+        body::-webkit-scrollbar, html::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+        #bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            min-width: 100vw;
+            min-height: 100vh;
+            width: auto;
+            height: auto;
+            z-index: -10;
+            object-fit: cover;
+            filter: brightness(0.6);
+        }
+        .container {
+            position: relative;
+            z-index: 10;
+            background: transparent;
+            padding: 2rem 3rem;
+            border-radius: 8px;
+            max-width: 500px;
+            margin: 5% auto 5% auto;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 1rem;
+            color: white;
+            font-weight: 700;
+            font-size: 3rem;
+            letter-spacing: 0.1em;
+        }
+        p {
+            font-size: 1.1rem;
+            margin: 0.5rem 0;
+            font-weight: 400;
+            color: #555;
+        }
+        .result {
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin: 1rem 0;
+            padding: 0.75rem;
+            border-radius: 4px;
+            color: white;
+        }
+        .deepfake {
+            color: #d9534f;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+        .authentic {
+            color: #28a745;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+        a {
+            display: inline-block;
+            margin-top: 1.5rem;
+            text-decoration: none;
+            color: #007bff;
+            font-weight: 700;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        #media-preview {
+            margin: 1rem auto;
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 12px;
+            box-shadow: 0 0 15px 3px #007bff;
+            border: 3px solid #007bff;
+        }
+        #media-preview img,
+        #media-preview video {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 12px;
+        }
+        #media-preview audio {
+            width: 100%;
+            outline: none;
+        }
+        #heatmap-preview {
+            margin: 1rem auto;
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 12px;
+            box-shadow: 0 0 15px 3px #dc3545;
+            border: 3px solid #dc3545;
+        }
+        h3 {
+            color: white !important;
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        #heatmap-preview img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 12px;
+        }
+        #heatmap-textbox {
+            width: 300px;
+            height: 300px;
+            margin-left: auto;
+            border-radius: 12px;
+            border: none;
+            padding: 10px;
+            font-size: 1rem;
+            font-family: 'Orbitron', sans-serif;
+            color: white;
+            background-color: rgba(44, 83, 100, 0.8);
+            resize: none;
+            box-shadow: none;
+            overflow-y: scroll;
+            scrollbar-width: thin;
+            scrollbar-color: transparent transparent;
+        }
+        #heatmap-textbox::-webkit-scrollbar {
+            width: 6px;
+        }
+        #heatmap-textbox::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #heatmap-textbox::-webkit-scrollbar-thumb {
+            background-color: transparent;
+            border-radius: 3px;
+        }
+        #heatmap-text-container {
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-start;
+            margin: 1rem 5rem 1rem 1rem;
+            max-width: 100%;
+            max-height: 300px;
+            gap: 40px;
+        }
+    
+    @media (max-width: 600px) {
+        .container {
+            max-width: 90%;
+            padding: 1.5rem 1rem;
+            margin: 3% auto;
+        }
+        h1 {
+            font-size: 2rem;
+        }
+        p {
+            font-size: 1rem;
+        }
+        .result {
+            font-size: 1.1rem;
+        }
+        a {
+            font-size: 1rem;
+        }
+        #media-preview {
+            max-height: 250px;
+        }
+    }
+    </style>
+</head>
+<body>
+    <video autoplay muted loop id="bg-video" playsinline style="pointer-events: none;">
+        <source src="{{ url_for('static', filename='background.mp4') }}" type="video/mp4" />
+        Your browser does not support the video tag.
+    </video>
+    <div class="container">
+        <h1>Deepfake Detection Result</h1>
+        {% if results and results[0] %}
+        <p class="result {% if results[0].result == 'Deepfake Detected' %}deepfake{% else %}authentic{% endif %}">{{ results[0].result }}</p>
+        {% if results[0].filename %}
+        <p><strong>File:</strong> {{ results[0].filename }}</p>
+        {% endif %}
+        {% if results[0].cam_path %}
+        <h3>Heatmap Visualization:</h3>
+        <div id="heatmap-preview" style="margin: 1rem auto; max-width: 100%; max-height: 300px; border-radius: 12px; box-shadow: 0 0 15px 3px #dc3545; border: 3px solid #dc3545;">
+            <img src="{{ url_for('static', filename='uploads/' + results[0].cam_path.split('\\')[-1]) }}" alt="Heatmap overlay" style="max-width: 100%; max-height: 300px; border-radius: 12px;" />
+        </div>
+        {% endif %}
+        <div id="media-preview">
+            {% if results[0].filename.endswith(('.png', '.jpg', '.jpeg')) %}
+            <img src="{{ url_for('static', filename='uploads/' + results[0].filename) }}" alt="Uploaded media preview" />
+            {% elif results[0].filename.endswith('.mp4') %}
+            <!-- Removed video preview as per user request -->
+            <p>Video preview is disabled.</p>
+            {% elif results[0].filename.endswith(('.wav', '.mp3')) %}
+            <!-- Removed audio preview as per user request -->
+            {% else %}
+            <!-- Removed 'No preview available' message as per user request -->
+            {% endif %}
+        </div>
+        {% endif %}
+        <a href="{{ url_for('upload_file') }}">Upload another file</a>
+    </div>
+</body>
+</html>

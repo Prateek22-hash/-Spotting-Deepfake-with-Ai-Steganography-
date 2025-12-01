@@ -1,0 +1,48 @@
+FaceForensics++ is a large-scale dataset and benchmark for detecting manipulated facial images and videos, commonly used in deepfake detection research. It provides a collection of real and manipulated videos with various manipulation methods applied, enabling training and evaluation of deepfake detection models.
+
+In this project, the Xception model is used for image and video deepfake detection, which aligns with the type of data FaceForensics++ provides. Although the project does not directly include FaceForensics++ code, it likely uses models trained on or inspired by this dataset for detecting facial manipulations.
+
+Key points about FaceForensics++:
+- It contains manipulated videos created using different face manipulation techniques.
+- It serves as a benchmark for evaluating deepfake detection algorithms.
+- Models trained on FaceForensics++ learn to distinguish between authentic and manipulated facial content.
+
+Relevant code in this project related to image/video deepfake detection:
+
+- The Xception model is loaded from 'models/xception_model.h5' and used to predict if an image or video frame is a deepfake.
+- Video deepfake detection is performed by extracting frames and applying the image deepfake detector on each frame.
+- Grad-CAM heatmaps are generated to visualize model attention on images.
+
+Example code snippets from app.py:
+
+# Load Xception model for image/video deepfake detection
+xception_model = load_model('models/xception_model.h5')
+
+def detect_image_deepfake(image_path):
+    img_data = preprocess_image(image_path)
+    prediction = xception_model.predict(img_data)
+    predicted_class = prediction[0].argmax()
+    if predicted_class == 0:
+        result = "Deepfake Detected"
+    else:
+        result = "Authentic Media"
+    # Grad-CAM heatmap generation omitted for brevity
+    return result, str(prediction), cam_path
+
+def detect_video_deepfake(video_path):
+    cap = cv2.VideoCapture(video_path)
+    frame_count, deepfake_frames = 0, 0
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            break
+        frame_count += 1
+        frame_path = 'frame.jpg'
+        cv2.imwrite(frame_path, frame)
+        if detect_image_deepfake(frame_path) == "Deepfake Detected":
+            deepfake_frames += 1
+    cap.release()
+    deepfake_ratio = deepfake_frames / frame_count
+    return "Deepfake Detected" if deepfake_ratio > 0.5 else "Authentic Media"
+
+This project uses models and techniques compatible with the FaceForensics++ dataset for detecting manipulated facial media.

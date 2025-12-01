@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SPOTTING DEEPFAKE WITH AI</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      background: url('https://cdn.dribbble.com/users/244626/screenshots/21461266/media/7a3a3a7a7a7a7a7a7a7a7a7a7a7a7a7a.png') no-repeat center center fixed;
+      background-size: cover;
+      font-family: 'Orbitron', sans-serif;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      text-shadow: none;
+    }
+    #welcomeText {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      font-size: 2.5rem;
+      font-weight: 700;
+      z-index: 10;
+    }
+    #continueBtn {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 1rem 2rem;
+      font-size: 1.5rem;
+      background-color: #00ffea;
+      color: #0f2027;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 15px #00ffea;
+      transition: background-color 0.3s ease;
+      z-index: 10;
+    }
+    #continueBtn:hover {
+      background-color: #00c8b3;
+    }
+    #backgroundAnimation {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      overflow: hidden;
+    }
+    /* Add any additional styles for the new UI here */
+  </style>
+</head>
+<body>
+  <video autoplay muted loop id="bg-video" playsinline style="position: fixed; top: 0; left: 0; min-width: 100vw; min-height: 100vh; width: auto; height: auto; z-index: -10; object-fit: cover; filter: brightness(0.6); pointer-events: none;">
+    <source src="/static/background_welcome.mp4" type="video/mp4" />
+    Your browser does not support the video tag.
+  </video>
+  <div id="welcomeText">SPOTTING DEEPFAKE WITH AI</div>
+  <button id="continueBtn">Continue to Upload</button>
+
+  <!-- Info Icon Button -->
+  <button id="infoBtn" title="Info" style="position: fixed; bottom: 1rem; right: 1rem; z-index: 20; background: transparent; border: none; cursor: pointer; outline: none;">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="teal" width="40" height="40" viewBox="0 0 24 24" stroke="teal" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="16" x2="12" y2="12" />
+      <line x1="12" y1="8" x2="12" y2="8" />
+    </svg>
+  </button>
+
+  <!-- External Link Icon Button -->
+  <button id="externalLinkBtn" title="External Link" style="position: fixed; bottom: 1rem; left: 1rem; z-index: 20; background: transparent; border: none; cursor: pointer; outline: none;" onclick="window.open('https://pib.gov.in/PressReleseDetailm.aspx?PRID=2119050&reg=3&lang=1', '_blank')">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="teal" width="40" height="40" viewBox="0 0 24 24" stroke="teal" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 13v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+      <polyline points="15 3 21 3 21 9" />
+      <line x1="10" y1="14" x2="21" y2="3" />
+    </svg>
+  </button>
+
+  <!-- About Text Icon Button -->
+  <button id="aboutTextBtn" title="About This Web App" style="position: fixed; bottom: 1rem; left: 5.5rem; z-index: 20; background: transparent; border: none; color: white; cursor: pointer; outline: none; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 0.9rem; padding: 0.5rem 1rem; border-radius: 8px; box-shadow: 0 0 10px #00ffea;">
+    📘 About This Web App
+  </button>
+  <!-- New Icon Button with Image -->
+  <button id="newIconBtn" title="New Icon" style="position: fixed; bottom: 1rem; right: 5.5rem; z-index: 20; background: transparent; border: none; cursor: pointer; outline: none; padding: 0;">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="teal" width="40" height="40" viewBox="0 0 24 24" stroke="teal" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="12 2 15 11 22 11 17 16 19 22 12 18 5 22 7 16 2 11 9 11 12 2" />
+    </svg>
+  </button>
+
+  <!-- New Icon Image Modal -->
+  <div id="newIconModal" style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.8); z-index: 12000; justify-content: center; align-items: center;">
+    <div style="position: relative; max-width: 90vw; max-height: 90vh;">
+      <button id="closeNewIconModal" style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; color: white; font-size: 2rem; cursor: pointer;">&times;</button>
+      <img src="/static/5_points.png" alt="New Icon Large" style="max-width: 100%; max-height: 100%;" />
+    </div>
+  </div>
+
+  <!-- About Text Modal -->
+  <div id="aboutTextModal" style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.9); z-index: 11000; justify-content: center; align-items: center; overflow-y: auto;">
+    <div style="position: relative; width: 90%; max-width: 700px; background: black; border-radius: 12px; padding: 2rem; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.5; max-height: 90vh; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none;">
+      <button id="closeAboutTextBtn" style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; color: white; font-size: 2rem; cursor: pointer;">&times;</button>
+      <h2>📘 About This Web App</h2>
+      <h3>🔍 Why We Built This App</h3>
+      <p>This Deepfake Detection Web App was created to help people check whether a photo, video, or audio clip is real or fake. Today, deepfakes—fake media made using artificial intelligence—can look and sound very real. This can cause big problems like spreading fake news, damaging reputations, and confusing the public.</p>
+      <p>Our goal is to give users a simple and helpful tool that can analyze media and tell if it might be fake.</p>
+      <h3>🎯 What This App Is For</h3>
+      <p>To spread awareness: Many people don’t realize how real deepfakes can look. This app helps show how fake media can be detected.</p>
+      <p>To help students and researchers: It’s a great tool for learning how deepfake detection works using AI and machine learning.</p>
+      <p>To support professionals: Journalists, fact-checkers, and legal teams can use it to verify if media is trustworthy.</p>
+      <p>To protect the public: Anyone can use this app to check suspicious content and avoid being misled.</p>
+      <h3>🧠 How It Works</h3>
+      <p>This app lets you upload:</p>
+      <ul>
+        <li>🖼️ Images – to check if a face or person in the picture is real or AI-generated</li>
+        <li>🎥 Videos – by analyzing frames of the video to spot signs of manipulation</li>
+        <li>🔊 Audio clips – to detect if someone’s voice is real or created by AI</li>
+      </ul>
+      <p>We use smart models trained on real and fake media to make the predictions.</p>
+      <h3>👥 Who Can Use It</h3>
+      <p>This app is for:</p>
+      <ul>
+        <li>📚 Students and teachers learning about AI and deepfakes</li>
+        <li>🧪 Researchers studying deepfake detection</li>
+        <li>📰 Journalists who need to fact-check media</li>
+        <li>👨‍⚖️ Law professionals who need to check digital evidence</li>
+        <li>🌍 Anyone who wants to know if a video, image, or voice is fake</li>
+      </ul>
+      <h3>⚠️ A Final Note</h3>
+      <p>This tool is not perfect. It gives helpful results, but it may not be 100% accurate. Always double-check important content. Use this app responsibly and ethically.</p>
+      <p>“Don’t believe everything you see or hear—use this app to find the truth.”</p>
+    </div>
+  </div>
+
+  <!-- Video Modal -->
+  <div id="infoModal" style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center;">
+    <div style="position: relative; width: 80%; max-width: 800px; background: black; border-radius: 12px; overflow: hidden;">
+      <button id="closeInfoBtn" style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; color: white; font-size: 2rem; cursor: pointer;">&times;</button>
+      <video id="infoVideo" controls loop style="width: 100%; height: auto;">
+        <source src="/static/info_video.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('continueBtn').addEventListener('click', function() {
+      document.getElementById('disclaimerModal').style.display = 'flex';
+    });
+
+    // New Icon Button click event to show modal
+    const newIconBtn = document.getElementById('newIconBtn');
+    const newIconModal = document.getElementById('newIconModal');
+    const closeNewIconModal = document.getElementById('closeNewIconModal');
+
+    if (newIconBtn && newIconModal && closeNewIconModal) {
+      newIconBtn.addEventListener('click', function() {
+        newIconModal.style.display = 'flex';
+      });
+
+      closeNewIconModal.addEventListener('click', function() {
+        newIconModal.style.display = 'none';
+      });
+
+      // Close modal when clicking outside the modal content
+      newIconModal.addEventListener('click', function(e) {
+        if (e.target === newIconModal) {
+          newIconModal.style.display = 'none';
+        }
+      });
+    }
+
+    const infoBtn = document.getElementById('infoBtn');
+    const infoModal = document.getElementById('infoModal');
+    const closeInfoBtn = document.getElementById('closeInfoBtn');
+    const infoVideo = document.getElementById('infoVideo');
+
+    infoBtn.addEventListener('click', function() {
+      infoModal.style.display = 'flex';
+      infoVideo.loop = true;
+      infoVideo.play();
+    });
+
+    closeInfoBtn.addEventListener('click', function() {
+      infoVideo.pause();
+      infoVideo.currentTime = 0;
+      infoModal.style.display = 'none';
+    });
+
+    // Close modal when clicking outside the video container
+    infoModal.addEventListener('click', function(e) {
+      if (e.target === infoModal) {
+        infoVideo.pause();
+        infoVideo.currentTime = 0;
+        infoModal.style.display = 'none';
+      }
+    });
+  </script>
+
+  <div id="disclaimerModal" style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: black; padding: 2rem; border-radius: 12px; max-width: 600px; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow-y: auto; max-height: 80vh; scrollbar-width: none; -ms-overflow-style: none;">
+      <h2>⚠️ Disclaimer</h2>
+      <p>This Deepfake Detection Web Application is designed and offered strictly for educational, research, academic, and public awareness purposes only. It is not a commercial product, nor is it intended for official forensic use or real-time law enforcement operations. The application uses advanced AI models to detect synthetic or manipulated media — including images, videos, and audio — and provides a basic analysis indicating whether the uploaded content is potentially a deepfake or authentic.</p>
+      <h3>📌 User Agreement and Responsibilities</h3>
+      <ul>
+        <li>You will NOT use this application to harass, defame, manipulate, or target any individual, group, or organization.</li>
+        <li>You understand that this tool is a proof-of-concept, and detection results may not always be accurate or reliable.</li>
+        <li>You agree to use this application only in lawful, ethical, and constructive ways that contribute to awareness and research into media authentication.</li>
+        <li>You accept full responsibility for the media you upload and any conclusions you draw from the detection output.</li>
+      </ul>
+      <h3>⚠️ Limitations of Accuracy</h3>
+      <ul>
+        <li>The application may generate false positives (i.e., flagging real media as fake) and false negatives (i.e., failing to detect actual deepfakes).</li>
+        <li>The detection is based on model training with specific datasets and may not generalize effectively to all forms of deepfakes, especially new or adversarial types.</li>
+        <li>Environmental factors like poor lighting, noise, compression artifacts, and editing can affect prediction accuracy.</li>
+      </ul>
+      <h3>🚫 Legal and Ethical Disclaimer</h3>
+      <ul>
+        <li>The developers, designers, and contributors of this application assume no liability for any consequences — legal or otherwise — that result from the misuse, misinterpretation, or dependence on this tool.</li>
+        <li>The tool is not a substitute for expert analysis, legal judgment, or forensic investigation.</li>
+        <li>Users are strongly advised to verify results independently through trusted experts or tools before making any public statements or decisions based on this application's output.</li>
+      </ul>
+      <h3>✅ Responsible Use Reminder</h3>
+      <p>Use this tool ethically, carefully, and responsibly.</p>
+      <p>This application should be viewed as a support tool — not a final arbiter — in the quest to detect and understand deepfakes.</p>
+      <p>By continuing to use this site, you acknowledge that you have read, understood, and agreed to all terms outlined in this disclaimer.</p>
+      <button onclick="document.getElementById('disclaimerModal').style.display='none'; window.location.href='{{ url_for('upload_file') }}';" style="margin-top: 1rem; padding: 0.5rem 1rem; font-size: 1rem; cursor: pointer; border-radius: 4px; border: none; background-color: #00ffea; color: #0f2027; display: block; margin-left: auto;">I Understand, Continue</button>
+    </div>
+  </div>
+
+  <script>
+    const aboutTextBtn = document.getElementById('aboutTextBtn');
+    const aboutTextModal = document.getElementById('aboutTextModal');
+    const closeAboutTextBtn = document.getElementById('closeAboutTextBtn');
+
+    aboutTextBtn.addEventListener('click', () => {
+      aboutTextModal.style.display = 'flex';
+    });
+
+    closeAboutTextBtn.addEventListener('click', () => {
+      aboutTextModal.style.display = 'none';
+    });
+
+    // Close modal when clicking outside the about text container
+    aboutTextModal.addEventListener('click', (e) => {
+      if (e.target === aboutTextModal) {
+        aboutTextModal.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>
